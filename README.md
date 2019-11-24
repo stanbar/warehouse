@@ -5,6 +5,9 @@
 [Hydra - 1st party provider](https://github.com/ory/hydra)
 [ktor - backend](https://ktor.io/)
 
+OAuth2 dziala w trybie Authorization Code Flow with PKCE, wiec musisz uzyc
+kompatybilnej biblioteki.
+
 Do logowania na Androidzie najlepiej użyj biblioteki AppAuth https://github.com/openid/AppAuth-Android
 package aplikacji zakładam, że jest `pl.adam.warehouse`. Tak jest wszedzie poustawiane.
 
