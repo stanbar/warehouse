@@ -1,3 +1,5 @@
+# Warehouse
+
 ## Stack
 
 [Hydra - 1st party provider](https://github.com/ory/hydra)
@@ -6,38 +8,42 @@
 Do logowania na Androidzie najlepiej użyj biblioteki AppAuth https://github.com/openid/AppAuth-Android
 package aplikacji zakładam, że jest `pl.adam.warehouse`. Tak jest wszedzie poustawiane.
 
-```
+```kotlin
 val serviceConfig: AuthorizationServiceConfiguration =
     AuthorizationServiceConfiguration.fetchFromIssuer(
         Uri.parse("https://10.0.2.2:9000"))
 ```
 
 zmiennie ktore musisz podac
-```
+
+```kotlin
 MY_CLIENT_ID = "warehouse"
 MY_REDIRECT_URI = "pl.adam.warehouse:/oauth2redirect"
 ```
 
 musisz skonfigurowac akceptowowanie SSLi czyli w builderze wywołujesz
-```
+
+```kotlin
 .setConnectionBuilder();
 ```
+
 i tam podajesz cennection manager ktory nie sprawdza certyfikatow
 tutaj masz przykład jak:
 `https://github.com/openid/AppAuth-Android/blob/master/app/java/net/openid/appauthdemo/ConnectionBuilderForTesting.java`
 
 do `build.gradle` `android{defaultConfig{}}` pamietaj dodac
-```
+
+```gradle
 manifestPlaceholders = [
     'appAuthRedirectScheme': 'pl.adam.warehouse'
 ]
 ```
 
-
 ## Logowanie z Google
+
 Jeśli logujesz się z google to do requesta dodajesz
 
-```
+```kotlin
 authRequestBuilder
     .setAdditionalParameters(mapOf("google_id_token" to "i tutaj podajesz google access token")
     .build();
@@ -61,7 +67,7 @@ authRequestBuilder
 1. Pobierz i zainstaluj Dockera
 2. Uruchamianie bazy danych w której będą przetrzymywane access_tokeny
 2.1. `docker-compose up -d db`
-3. Wypełnianie tej bazy schematami (opis https://www.ory.sh/docs/hydra/configure-deploy)
+3. Wypełnianie tej bazy schematami [opis](https://www.ory.sh/docs/hydra/configure-deploy)
 3.1. `docker-compose run --rm hydra migrate sql --yes "postgres://warehouse:password@adam-db:5432/warehouse?sslmode=disable"`
 4. Uruchomienie hydry (1st party provider) który jest odpowiedzialny za autoryzacje, i wystawianie access_tokenów do twojego backendu
 4.1. `docker-compose up -d hydra`
@@ -71,22 +77,22 @@ authRequestBuilder
 6.1. Zbuduj backend `./gradlew build`
 6.2 Odpal kontener `docker-compose up -d backend`
 
-
 Od teraz wszystko jest skonfigurowane i uruchomione.
-Po wprowadzeniu zmian do backendu musisz go przebudowac `./gradlew build `
+Po wprowadzeniu zmian do backendu musisz go przebudowac `./gradlew build`
 Jeśli chcesz zrestartowac kontenery to wystarczy jedna komenda `docker-compose up -d`
 
 # Questions and Answers
 
 Legenda:
-🧐 - Waldek
-🤥 - Ty
 
-🧐: Czemu Pan wybrał Hydre ?
-🤥: A wie pan, wpisałem w google i to sie pierwsze pojawilo i wygladalo spoko
+- 🧐 - Waldek
+- 🤥 - Ty
 
-🧐: Ok, i gdzie ma Pan logowanie przez Google
-🤥: W pliku src/Hydra.kt funkcja `authenticateWithGoogle()`
-🧐: A jak Pan sprawdza token od Goole'a ?
-🤥: W pliku src/Hydra.kt funkcja `validateGoogleToken()` sprawdzam czy `iss` się zgadza i czy `exp` nie wygasl
+- 🧐: Czemu Pan wybrał Hydre ?
+- 🤥: A wie pan, wpisałem w google i to sie pierwsze pojawilo i wygladalo spoko
+
+- 🧐: Ok, i gdzie ma Pan logowanie przez Google
+- 🤥: W pliku src/Hydra.kt funkcja `authenticateWithGoogle()`
+- 🧐: A jak Pan sprawdza token od Goole'a ?
+- 🤥: W pliku src/Hydra.kt funkcja `validateGoogleToken()` sprawdzam czy `iss` się zgadza i czy `exp` nie wygasl
 
