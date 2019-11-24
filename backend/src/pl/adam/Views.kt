@@ -11,33 +11,46 @@ fun HTML.loginPage(challenge: String) {
         meta(name = "viewport", content = "width=device-width, initial-scale=1, shrink-to-fit=no")
     }
     body {
+        h1{
+            +"Please login"
+        }
         form(action = "/login", method = FormMethod.post) {
-            input(type = InputType.hidden, name = "challenge") {
-                +challenge
+            input {
+                type = InputType.hidden
+                name = "challenge"
+                value = challenge
             }
             div("form-group row") {
                 label(classes = "col-sm-2 col-form-label") {
-                    +"Email"
                     htmlFor = "email"
+                    +"Email"
                 }
-                input(type = InputType.email, name = "email") {
+                input {
+                    type = InputType.email
+                    name = "email"
                     placeholder = "adam@gliszczynski.pl"
                     id = "email"
                 }
             }
             div("form-group row") {
-                label(classes = "col-sm-2 col-form-label") {
-                    +"Password"
+                label {
+                    classes = setOf("col-sm-2 col-form-label")
                     htmlFor = "password"
+                    +"Password"
                 }
-                input(type = InputType.password, name = "password") {
+                input {
+                    type = InputType.password
+                    name = "password"
                     placeholder = "password"
                     id = "password"
                 }
             }
-            button(type = ButtonType.submit, name = "submit", classes = "btn btn-primary") {
-                +"Log in"
+            button {
+                type = ButtonType.submit
+                name = "submit"
+                classes = setOf("btn btn-primary")
                 id = "accept"
+                +"Log in"
             }
         }
         script(src = "https://code.jquery.com/jquery-3.3.1.slim.min.js") {}
@@ -55,47 +68,47 @@ fun HTML.consentPage(challenge: String, user: String) {
         meta(name = "viewport", content = "width=device-width, initial-scale=1, shrink-to-fit=no")
     }
     body {
-        h1 { +"HTML" }
-        ul {
-            for (n in 1..10) {
-                li { +"$n" }
-            }
-        }
         form(action = "", method = FormMethod.post) {
-            input(type = InputType.hidden, name = "challenge") {
-                +challenge
+            input {
+                type = InputType.hidden
+                name = "challenge"
+                value = challenge
             }
             p {
                 +" Hi $user"
             }
             div("form-group form-check") {
-                input(type = InputType.checkBox, name = "grant_scope", classes = "form-check-input") {
-                    +"openid"
+                input {
                     id = "openid"
-                }
-                label(classes = "form-check-label") {
+                    type = InputType.checkBox
+                    name = "grant_scope"
+                    classes = setOf("form-check-input")
                     +"openid"
-                    htmlFor = "openid"
                 }
                 br
-                input(type = InputType.checkBox, name = "grant_scope", classes = "form-check-input") {
-                    +"offline"
+                input {
+                    type = InputType.checkBox
+                    name = "grant_scope"
+                    classes = setOf("form-check-input")
                     id = "offline"
-                }
-                label(classes = "form-check-label") {
                     +"offline"
-                    htmlFor = "offline"
                 }
                 br
 
             }
-            button(type = ButtonType.submit, name = "submit", classes = "btn btn-primary") {
-                +"Allow access"
+            button {
+                classes = setOf("btn btn-primary")
+                type = ButtonType.submit
+                name = "submit"
                 id = "accept"
+                +"Allow access"
             }
-            button(type = ButtonType.submit, name = "submit", classes = "btn btn-outline-secondary") {
-                +"Deny access"
+            button {
+                classes = setOf("btn btn-outline-secondary")
+                type = ButtonType.submit
+                name = "submit"
                 id = "reject"
+                +"Deny access"
             }
         }
         script(src = "https://code.jquery.com/jquery-3.3.1.slim.min.js") {}

@@ -8,6 +8,7 @@ import io.ktor.features.AutoHeadResponse
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.gson.gson
+import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
@@ -105,5 +106,16 @@ fun Application.module(testing: Boolean = false) {
         postLogin()
         getConsent()
         postConsent()
+
+        get("/testLogin"){
+            call.respondHtml {
+                loginPage("1234")
+            }
+        }
+        get("/testConsent"){
+            call.respondHtml {
+                consentPage("1234", "adam@gliszczynski.pl")
+            }
+        }
     }
 }
