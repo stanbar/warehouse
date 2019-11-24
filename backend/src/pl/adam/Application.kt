@@ -1,5 +1,6 @@
 package pl.adam
 
+import com.google.gson.JsonObject
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -15,7 +16,6 @@ import io.ktor.response.respondText
 import io.ktor.routing.*
 import org.slf4j.event.Level
 import pl.adam.models.Product
-import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -42,7 +42,7 @@ fun Application.module(testing: Boolean = false) {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
         get("/products") {
-            call.respond(products)
+            call.respond(products.values)
         }
         get("/products/{id}") {
             val item = products[call.parameters["id"]]
@@ -52,19 +52,34 @@ fun Application.module(testing: Boolean = false) {
                 call.respond(item)
         }
         post("/products") {
-            val product = call.receive<Product>()
-            val newProduct = product.copy(id = UUID.randomUUID().toString())
-            products[newProduct.id] = newProduct
-            call.respond(HttpStatusCode.Created)
+            val newProduct = call.receive<Product>()
+            try {
+                products[newProduct.id] = newProduct
+                call.respond(HttpStatusCode.Created)
+            } catch (e: Exception) {
+                println(e.message)
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
         }
         put("/products/{id}") {
             val productId = call.parameters["id"]
-            val updatedProduct = call.receive<Product>()
+            val updatedProduct = call.receive<JsonObject>()
             if (productId == null) {
                 call.respond(HttpStatusCode.BadRequest, "Please provide product id in request path")
             } else {
-                products[productId] = updatedProduct
-                call.respond(HttpStatusCode.OK)
+                val currentProduct = products[productId]
+                if (currentProduct == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                } else {
+                    val newProduct = currentProduct.copy(
+                        manufacturer = updatedProduct["manufacturer"]?.asString ?: currentProduct.manufacturer,
+                        model = updatedProduct["model"]?.asString ?: currentProduct.model,
+                        price = updatedProduct["price"]?.asInt ?: currentProduct.price
+                    )
+                    products[productId] = newProduct
+                    call.respond(HttpStatusCode.OK)
+                }
             }
         }
         delete("/products/{id}") {
@@ -80,7 +95,7 @@ fun Application.module(testing: Boolean = false) {
                 val product = products[productId]!!
 
                 products[productId] = product.copy(quantity = product.quantity + delta)
-                call.respond(products[productId]!!)
+                call.respond(HttpStatusCode.OK)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest)
             }

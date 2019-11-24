@@ -1,3 +1,5 @@
+package pl.adam
+
 import kotlinx.html.*
 
 fun HTML.loginPage(challenge: String) {

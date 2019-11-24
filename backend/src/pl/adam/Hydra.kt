@@ -3,6 +3,7 @@ package pl.adam
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.put
@@ -17,7 +18,9 @@ import java.net.URL
 val hydraUrl = System.getenv("HYDRA_ADMIN_URL")
 
 val client = HttpClient(Apache) {
-    install(JsonFeature)
+    install(JsonFeature){
+        serializer = KotlinxSerializer()
+    }
     engine {
         customizeClient {
             setSSLContext(
@@ -92,7 +95,7 @@ object Hydra {
                 "remember" to "${3600 * 24 * 90}"
             )
         )
-        return Hydra.acceptLoginRequest(challenge, body)
+        return acceptLoginRequest(challenge, body)
     }
 
     fun validateGoogleToken(token: Map<String, String>) {
@@ -109,7 +112,7 @@ object Hydra {
         }
     }
 
-    // A little helper that takes type (can be "login" or "consent") and a challenge and returns the response from ORY Hydra.
+    // A little helper that takes type (can be "login" or "consent") and a challenge and returns the response from ORY pl.adam.Hydra.
     suspend inline fun <reified T> get(flow: String, challenge: String): T {
         if (flow !in arrayOf("login", "consent")) {
             error("invalid flow")
@@ -122,7 +125,7 @@ object Hydra {
         }
     }
 
-    // A little helper that takes type (can be "login" or "consent"), the action (can be "accept" or "reject") and a challenge and returns the response from ORY Hydra.
+    // A little helper that takes type (can be "login" or "consent"), the action (can be "accept" or "reject") and a challenge and returns the response from ORY pl.adam.Hydra.
     suspend inline fun <reified T> put(flow: String, action: String, challenge: String, bodyJson: JSONObject): T {
         if (flow !in arrayOf("login", "consent")) {
             error("invalid flow")

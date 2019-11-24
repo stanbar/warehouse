@@ -1,6 +1,5 @@
 package pl.adam
 
-import consentPage
 import io.ktor.application.call
 import io.ktor.html.respondHtml
 import io.ktor.http.Parameters
@@ -9,10 +8,9 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
-import loginPage
-import org.json.simple.JSONObject
 import pl.adam.models.ConsentResponse
 import pl.adam.models.LoginResponse
+import org.json.simple.JSONObject
 
 
 fun Routing.getLogin() {
@@ -23,7 +21,10 @@ fun Routing.getLogin() {
         when {
             response.skip -> {
                 val res =
-                    Hydra.acceptLoginRequest<LoginResponse>(challenge, JSONObject(mapOf("subject" to response.subject)))
+                    Hydra.acceptLoginRequest<LoginResponse>(
+                        challenge,
+                        JSONObject(mapOf("subject" to response.subject))
+                    )
                 call.respondRedirect(url = res.redirectTo)
             }
             googleIdToken != null -> {
