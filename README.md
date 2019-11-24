@@ -85,11 +85,13 @@ Jeśli chcesz zrestartowac kontenery to wystarczy jedna komenda `docker-compose 
 
 Legenda:
 
-- 🧐 - Waldek
-- 🤥 - Ty
+🧐 - Waldek
+🤥 - Ty
+
 
 - 🧐: Czemu Pan wybrał Hydre ?
 - 🤥: A wie pan, wpisałem w google i to sie pierwsze pojawilo i wygladalo spoko
+
 
 - 🧐: Ok, i gdzie ma Pan logowanie przez Google
 - 🤥: W pliku src/Hydra.kt funkcja `authenticateWithGoogle()`
