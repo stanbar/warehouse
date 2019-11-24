@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+
+  db:
+    image: postgres
+    container_name: adam-db
+    environment:
+      POSTGRES_USER: warehouse
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: warehouse
+
+  hydra:
+    container_name: adam-hydra
+    image: oryd/hydra
+    command: serve all
+    environment:
+      SECRETS_SYSTEM: "system_secret_very_hard_password"
+      DSN: "postgres://warehouse:password@adam-db:5432/warehouse?sslmode=disable"
+      URLS_SELF_ISSUER: "https://localhost:${PORT_HYDRA_PUBLIC}"
+      URLS_CONSENT: "http://localhost:${PORT_BACKEND}/consent"
+      URLS_LOGIN: "http://localhost:${PORT_BACKEND}/login"
+      SERVE_TLS_KEY: "${SSL_KEY}"
+      SERVE_TLS_CERT: "${SSL_CERT}"
+    ports:
+      - "${PORT_HYDRA_PUBLIC}:4444"
+      - "${PORT_HYDRA_PRIVATE}:4445"
+    restart: unless-stopped
+    depends_on:
+      - db
+
+
+  backend:
+    build: .
+    container_name: adam-backend
+    env_file: .env
+    environment:
+      HYDRA_ADMIN_URL: https://adam-hydra:4445
+    ports:
+      - "${PORT_BACKEND}:${PORT_BACKEND}"
+    restart: unless-stopped
+    depends_on:
+      - hydra
