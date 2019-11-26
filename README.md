@@ -63,7 +63,7 @@ authRequestBuilder
 - POST `/products` - create new product from JSON request body
 - PUT `/products/{id}` - update product with {id} with JSON request body
 - DELETE `/products/{id}` - delete product with {id}
-- GET `/changeQuantity/{id}?delta={delta}` - change quantity of product of {id} by applying {delta} to its current quantity
+- POST `/changeQuantity/{id}?delta={delta}` - change quantity of product of {id} by applying {delta} to its current quantity
 
 ## Setting up
 
