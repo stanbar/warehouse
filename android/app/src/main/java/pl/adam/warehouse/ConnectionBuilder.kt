@@ -29,11 +29,8 @@ object ConnectionBuilder : ConnectionBuilder {
     private val CONNECTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15).toInt()
     private val READ_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10).toInt()
 
-    private const val HTTP = "http"
-    private const val HTTPS = "https"
-
-    @SuppressLint("TrustAllX509TrustManager")
     private val ANY_CERT_MANAGER: Array<TrustManager> = arrayOf(
+        @SuppressLint("TrustAllX509TrustManager")
         object : X509TrustManager {
             override fun checkClientTrusted(
                 p0: Array<out X509Certificate>?,
@@ -56,30 +53,10 @@ object ConnectionBuilder : ConnectionBuilder {
 
     @SuppressLint("BadHostnameVerifier")
     private val ANY_HOSTNAME_VERIFIER =
-        HostnameVerifier { hostname, session -> true }
+        HostnameVerifier { _, _ -> true }
 
-    private var TRUSTING_CONTEXT: SSLContext? = null
-
-    init {
-        val context: SSLContext? = try {
-            SSLContext.getInstance("SSL")
-        } catch (e: NoSuchAlgorithmException) {
-            Log.e("ConnBuilder", "Unable to acquire SSL context")
-            null
-        }
-
-        var initializedContext: SSLContext? = null
-        if (context != null) {
-            try {
-                context.init(null, ANY_CERT_MANAGER, SecureRandom())
-                initializedContext = context
-            } catch (e: KeyManagementException) {
-                Log.e(TAG, "Failed to initialize trusting SSL context")
-            }
-        }
-
-        TRUSTING_CONTEXT = initializedContext
-
+    private var TRUSTING_CONTEXT: SSLContext? = SSLContext.getInstance("SSL").apply {
+        init(null, ANY_CERT_MANAGER, SecureRandom())
     }
 
     override fun openConnection(uri: Uri): HttpURLConnection {
