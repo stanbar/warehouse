@@ -58,8 +58,7 @@ dependencies {
     compile "io.ktor:ktor-client-apache:$ktor_version"
     compile "io.ktor:ktor-client-json:$ktor_version"
     compile "io.ktor:ktor-client-json-jvm:$ktor_version"
-    compile "io.ktor:ktor-client-serialization:$ktor_version"
-    compile "io.ktor:ktor-client-serialization-jvm:$ktor_version"
+    compile "io.ktor:ktor-client-gson:$ktor_version"
 
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
 }

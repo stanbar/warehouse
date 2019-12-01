@@ -1,7 +1,6 @@
-version: '3'
+version: "3"
 
 services:
-
   db:
     image: postgres
     container_name: adam-db
@@ -17,9 +16,9 @@ services:
     environment:
       SECRETS_SYSTEM: "system_secret_very_hard_password"
       DSN: "postgres://warehouse:password@adam-db:5432/warehouse?sslmode=disable"
-      URLS_SELF_ISSUER: "https://localhost:${PORT_HYDRA_PUBLIC}"
-      URLS_CONSENT: "http://localhost:${PORT_BACKEND}/consent"
-      URLS_LOGIN: "http://localhost:${PORT_BACKEND}/login"
+      URLS_SELF_ISSUER: "https://10.0.2.2:${PORT_HYDRA_PUBLIC}"
+      URLS_CONSENT: "http://10.0.2.2:${PORT_BACKEND}/consent"
+      URLS_LOGIN: "http://10.0.2.2:${PORT_BACKEND}/login"
       SERVE_TLS_KEY: "${SSL_KEY}"
       SERVE_TLS_CERT: "${SSL_CERT}"
     ports:
@@ -28,7 +27,6 @@ services:
     restart: unless-stopped
     depends_on:
       - db
-
 
   backend:
     build: .

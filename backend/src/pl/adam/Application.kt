@@ -11,12 +11,14 @@ import io.ktor.gson.gson
 import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.request.header
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.*
 import org.slf4j.event.Level
 import pl.adam.models.Product
+import pl.adam.models.User
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -41,6 +43,16 @@ fun Application.module(testing: Boolean = false) {
     routing {
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+        }
+        get("/currentUser") {
+            val authorizationToken = call.request.header("Authorization")
+            if (authorizationToken == null) {
+                call.respond(HttpStatusCode.NonAuthoritativeInformation)
+            } else {
+                val token = authorizationToken.substringAfter("Bearer ")
+                val subject = Hydra.introspectOAuthToken(token)
+                call.respond(User(subject.subject, subject.extra["role"] ?: "n/a"))
+            }
         }
         get("/products") {
             call.respond(products.values)
@@ -107,12 +119,12 @@ fun Application.module(testing: Boolean = false) {
         getConsent()
         postConsent()
 
-        get("/testLogin"){
+        get("/testLogin") {
             call.respondHtml {
                 loginPage("1234")
             }
         }
-        get("/testConsent"){
+        get("/testConsent") {
             call.respondHtml {
                 consentPage("1234", "adam@gliszczynski.pl")
             }

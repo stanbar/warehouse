@@ -2,24 +2,28 @@ package pl.adam
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
+import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.client.request.put
+import io.ktor.http.Parameters
 import io.ktor.http.headersOf
 import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy
 import org.apache.http.ssl.SSLContextBuilder
 import org.json.simple.JSONObject
 import pl.adam.models.LoginResponse
+import pl.adam.models.Subject
 import java.net.URL
 
 val hydraUrl = System.getenv("HYDRA_ADMIN_URL")
 
 val client = HttpClient(Apache) {
-    install(JsonFeature){
-        serializer = KotlinxSerializer()
+    install(JsonFeature) {
+        serializer = GsonSerializer {}
     }
     engine {
         customizeClient {
@@ -82,6 +86,12 @@ object Hydra {
         return put("logout", "reject", challenge, JSONObject())
     }
 
+    suspend inline fun introspectOAuthToken(token: String): Subject {
+        return post("introspect", Parameters.build {
+            append("token", token)
+        })
+    }
+
     suspend inline fun authenticateWithGoogle(
         googleIdToken: String,
         challenge: String
@@ -91,8 +101,8 @@ object Hydra {
         validateGoogleToken(token);
         val body = JSONObject(
             mapOf(
-                "subject" to token["email"]!!,
-                "remember" to "${3600 * 24 * 90}"
+                "subject" to token["email"],
+                "remember" to 3600 * 24 * 90
             )
         )
         return acceptLoginRequest(challenge, body)
@@ -135,7 +145,26 @@ object Hydra {
         println("PUT: $url")
         return client.put(url) {
             header("Content-Type", "application/json")
-            body = bodyJson.toJSONString()
+            body = bodyJson
+        }
+    }
+
+    // A little helper that takes type (can be "login" or "consent"), the action (can be "accept" or "reject") and a challenge and returns the response from ORY pl.adam.Hydra.
+    suspend inline fun <reified T> post(action: String, parameters: Parameters): T {
+        val url = URL("$hydraUrl/oauth2/$action")
+        println("POST: $url")
+        return client.post(url) {
+            body = FormDataContent(parameters)
+        }
+    }
+
+    // A little helper that takes type (can be "login" or "consent"), the action (can be "accept" or "reject") and a challenge and returns the response from ORY pl.adam.Hydra.
+    suspend inline fun <reified T> post(action: String, bodyJson: JSONObject): T {
+        val url = URL("$hydraUrl/oauth2/$action")
+        println("POST: $url")
+        return client.post(url) {
+            header("Content-Type", "application/json")
+            body = bodyJson
         }
     }
 }

@@ -1,13 +1,13 @@
 package pl.adam.models
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
-@Serializable
+
 data class LoginResponse(
-    @SerialName("redirect_to")
-    val redirectTo: String,
-    @SerialName("request_url")
+    val challenge: String,
+    @SerializedName("redirect_to")
+    val redirectTo: String?,
+    @SerializedName("request_url")
     val requestUrl: String,
     val subject: String,
     val skip: Boolean

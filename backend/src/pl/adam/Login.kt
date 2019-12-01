@@ -8,15 +8,15 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
+import org.json.simple.JSONObject
 import pl.adam.models.ConsentResponse
 import pl.adam.models.LoginResponse
-import org.json.simple.JSONObject
 
 
 fun Routing.getLogin() {
     get("/login") {
         val googleIdToken = call.request.queryParameters["google_id_token"]
-        val challenge = call.request.queryParameters["challenge"]!!
+        val challenge = call.request.queryParameters["login_challenge"]!!
         val response: LoginResponse = Hydra.getLoginRequest(challenge)
         when {
             response.skip -> {
@@ -25,11 +25,11 @@ fun Routing.getLogin() {
                         challenge,
                         JSONObject(mapOf("subject" to response.subject))
                     )
-                call.respondRedirect(url = res.redirectTo)
+                call.respondRedirect(url = res.redirectTo!!)
             }
             googleIdToken != null -> {
                 val googleRes = Hydra.authenticateWithGoogle(googleIdToken, challenge)
-                call.respondRedirect(url = googleRes.redirectTo)
+                call.respondRedirect(url = googleRes.redirectTo!!)
             }
             else -> {
                 call.respondHtml {
@@ -44,28 +44,28 @@ fun Routing.getLogin() {
 fun Routing.postLogin() {
     post("login") {
         // The challenge is now a hidden input field, so let's take it from the request body instead
-        val challenge = call.request.queryParameters["challenge"]!!
-        val email = call.request.queryParameters["email"]!!
-        val password = call.request.queryParameters["password"]!!
+        val parameters = call.receiveParameters()
+        println("parameters: $parameters")
+        val challenge = parameters["challenge"]!!
+        val email = parameters["email"]!!
+        val password = parameters["password"]!!
+        println(email)
+        println(password)
 
-
-        val isValidEmployee = email === "adam@gliszczynski.pl" && password === "password";
-        val isValidManager = email === "manager@gliszczynski.pl" && password === "password";
-        // Let's check if the user provided valid credentials. Of course, you'd use a database or some third-party service
-        // for this!
-        if (!isValidEmployee && !isValidManager) {
-            println("failed to login: ${email} and ${password}")
+        if (email == "employee@adam.pl" || email == "manager@adam.pl") {
+            println("success login: $email and $password")
+            val response = Hydra.acceptLoginRequest<LoginResponse>(
+                challenge,
+                JSONObject(mapOf("subject" to email, "remember_for" to 60 * 60 * 24 * 90))
+            )
+            call.respondRedirect(url = response.redirectTo!!)
+        } else {
+            println("failed to login: $email and $password")
             // Looks like the user provided invalid credentials, let's show the ui again...
             call.respondHtml {
                 loginPage(challenge)
             }
         }
-
-        val response = Hydra.acceptLoginRequest<LoginResponse>(
-            challenge,
-            JSONObject(mapOf("subject" to email, "remember_for" to "${60 * 60 * 24 * 90}"))
-        )
-        call.respondRedirect(url = response.redirectTo)
     }
 }
 
@@ -103,6 +103,8 @@ fun Routing.getConsent() {
 fun Routing.postConsent() {
     post("/consent") {
         val postParameters: Parameters = call.receiveParameters()
+        println("postParameters: $postParameters")
+
         val challenge = postParameters["challenge"]!!
         if (postParameters["submit"] == "Deny access") {
             val response = Hydra.rejectConsentRequest(
@@ -116,20 +118,25 @@ fun Routing.postConsent() {
             )
             call.respondRedirect(response.redirect_to)
         } else {
+            val getResponse = Hydra.getConsentRequest<ConsentResponse>(challenge)
+            println("getResponse: $getResponse")
+            val subject = getResponse.subject
+            val requestedAccessTokenAudience = getResponse.requestedAccessTokenAudience
+            val grantScope = postParameters["grant_scope"]
             val response = Hydra.acceptConsentRequest(
                 challenge, JSONObject(
                     mapOf(
-                        "grant_scope" to postParameters["grant_scope"],
-                        "grant_access_token_audience" to postParameters["grant_access_token_audience"],
+                        "grant_scope" to grantScope!!.split(", "),
+                        "grant_access_token_audience" to requestedAccessTokenAudience,
                         "session" to mapOf(
                             "access_token" to mapOf(
-                                "role" to if (postParameters["subject"]!!.split("@")[0] == "manager") "manager" else "employee"
+                                "role" to if (subject.split("@")[0] == "manager") "manager" else "employee"
                             ),
                             "id_token" to mapOf(
-                                "role" to if (postParameters["usbject"]!!.split("@")[0] == "manager") "manager" else "employee"
+                                "role" to if (subject.split("@")[0] == "manager") "manager" else "employee"
                             )
                         ),
-                        "remember_for" to 3600
+                        "remember_for" to 0
                     )
                 )
             )

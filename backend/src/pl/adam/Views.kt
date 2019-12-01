@@ -28,8 +28,9 @@ fun HTML.loginPage(challenge: String) {
                 input {
                     type = InputType.email
                     name = "email"
-                    placeholder = "adam@gliszczynski.pl"
+                    placeholder = "manager@adam.pl"
                     id = "email"
+                    value = "manager@adam.pl"
                 }
             }
             div("form-group row") {
@@ -43,6 +44,7 @@ fun HTML.loginPage(challenge: String) {
                     name = "password"
                     placeholder = "password"
                     id = "password"
+                    value = "password"
                 }
             }
             button {
