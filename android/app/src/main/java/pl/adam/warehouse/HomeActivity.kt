@@ -28,6 +28,7 @@ class HomeActivity : AppCompatActivity(), CoroutineScope {
     }
 
     private fun getAccessToken() = prefs.getString("accessToken", null)
+    private fun clearAccessToken() = prefs.edit().putString("accessToken", null).apply()
 
     private val client by lazy {
         OkHttpClient.Builder().addInterceptor { chain ->
@@ -53,7 +54,12 @@ class HomeActivity : AppCompatActivity(), CoroutineScope {
         rvProducts.adapter = ProductsAdapter()
         fetchCurrentUser()
         fetchProducts()
+        btnLogout.setOnClickListener {
+            clearAccessToken()
+            finish()
+        }
     }
+
 
     private fun fetchCurrentUser() = launch {
         val currentUser = try {

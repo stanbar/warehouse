@@ -35,6 +35,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="manager" />
+        <Button
+            android:text="Logout"
+            android:id="@+id/btnLogout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <TextView
