@@ -12,6 +12,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import net.openid.appauth.*
 import net.openid.appauth.AuthorizationServiceConfiguration
 import pl.adam.warehouse.utils.ConnectionBuilder
+import pl.adam.warehouse.utils.GOOGLE_CLIENT_ID
 
 
 class MainActivity : AppCompatActivity() {
@@ -49,7 +50,7 @@ class MainActivity : AppCompatActivity() {
                     val authRequest =
                         AuthorizationRequest.Builder(
                             serviceConfig,
-                            "955974405187-spkkfkken9ejn2so5leqbc1nate61ci0.apps.googleusercontent.com",
+                            GOOGLE_CLIENT_ID,
                             ResponseTypeValues.CODE,
                             Uri.parse("pl.adam.warehouse:/oauth2redirect")
                         )
