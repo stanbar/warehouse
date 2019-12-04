@@ -16,13 +16,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-class EditActivity : AppCompatActivity(), CoroutineScope {
+class EditActivity : AppCompatActivity(){
     val TAG = "EditActivity "
-
-    private val parent = SupervisorJob()
-
-    override val coroutineContext: CoroutineContext
-        get() = parent + Dispatchers.Main
 
     private val prefs: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
