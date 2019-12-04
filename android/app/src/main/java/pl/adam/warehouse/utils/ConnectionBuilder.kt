@@ -1,17 +1,13 @@
-package pl.adam.warehouse
+package pl.adam.warehouse.utils
 
 import android.annotation.SuppressLint;
 import android.net.Uri;
-import android.util.Log;
 
 import net.openid.appauth.Preconditions;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -56,7 +51,8 @@ object ConnectionBuilder : ConnectionBuilder {
         HostnameVerifier { _, _ -> true }
 
     private var TRUSTING_CONTEXT: SSLContext? = SSLContext.getInstance("SSL").apply {
-        init(null, ANY_CERT_MANAGER, SecureRandom())
+        init(null,
+            ANY_CERT_MANAGER, SecureRandom())
     }
 
     override fun openConnection(uri: Uri): HttpURLConnection {
@@ -64,13 +60,16 @@ object ConnectionBuilder : ConnectionBuilder {
 
         val conn =
             URL(uri.toString()).openConnection() as HttpURLConnection
-        conn.connectTimeout = CONNECTION_TIMEOUT_MS
-        conn.readTimeout = READ_TIMEOUT_MS
+        conn.connectTimeout =
+            CONNECTION_TIMEOUT_MS
+        conn.readTimeout =
+            READ_TIMEOUT_MS
         conn.instanceFollowRedirects = false
 
         val httpsConn: HttpsURLConnection = conn as HttpsURLConnection
         httpsConn.sslSocketFactory = TRUSTING_CONTEXT!!.socketFactory
-        httpsConn.hostnameVerifier = ANY_HOSTNAME_VERIFIER
+        httpsConn.hostnameVerifier =
+            ANY_HOSTNAME_VERIFIER
 
         return conn
     }

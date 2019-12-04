@@ -1,5 +1,6 @@
 package pl.adam.warehouse
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,15 +36,16 @@ class ProductsAdapter(private val clickListener: (Product) -> Unit) :
         private val tvPrice: TextView = view.findViewById(R.id.tvPrice)
         private val tvQuantities: TextView = view.findViewById(R.id.tvQuantities)
 
+        @SuppressLint("SetTextI18n")
         fun bind(product: Product) {
             println("bind $product")
             itemView.setOnClickListener {
                 clickListener(product)
             }
-            tvModel.text = product.model
-            tvManufacturer.text = product.manufacturer
-            tvPrice.text = product.price.toString()
-            tvQuantities.text = product.quantity.toString()
+            tvModel.text = "Model: ${product.model}"
+            tvManufacturer.text = "Manufacturer: ${product.manufacturer}"
+            tvPrice.text = "Price: ${product.price}"
+            tvQuantities.text = "QA: ${product.quantity}"
         }
     }
 

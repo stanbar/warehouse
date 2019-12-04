@@ -8,41 +8,19 @@ import android.widget.Toast
 import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_edit.*
 import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import pl.adam.warehouse.models.Product
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.Response
 import java.util.*
-import kotlin.coroutines.CoroutineContext
 
-class EditActivity : AppCompatActivity(){
-    val TAG = "EditActivity "
+class EditActivity : AppCompatActivity() {
 
     private val prefs: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
             this
         )
     }
-
-    private fun getAccessToken() = prefs.getString("accessToken", null)
-
-    private val client by lazy {
-        OkHttpClient.Builder().addInterceptor { chain ->
-            val newRequest: Request = chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer ${getAccessToken()}")
-                .build()
-            chain.proceed(newRequest)
-        }.build()
-    }
-
-    private val service: ResourceService by lazy {
-        Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080")
-            .client(client)
-            .addConverterFactory(MoshiConverterFactory.create())
-            .build()
-            .create(ResourceService::class.java)
+    private val resService by lazy {
+        ResourceService(LocalStorage(prefs))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,73 +42,90 @@ class EditActivity : AppCompatActivity(){
             btnPut.text = "Create"
         }
 
-        btnDelete.setOnClickListener {
-            if (product != null) {
-                GlobalScope.launch {
-                    service.deleteProducts(product.id)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@EditActivity,
-                            "Successfully deleted products",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    finish()
-                }
-            } else
-                Toast.makeText(this, "Can not delete null product", Toast.LENGTH_SHORT).show()
+        btnDelete.setOnClickListener { onDeleteClick(product) }
+        btnApplyDelta.setOnClickListener { onApplyChangeClick(product) }
+        btnPut.setOnClickListener { onPutClick(product) }
+    }
 
+    private fun onPutClick(product: Product?) {
+        val newProduct = Product(
+            UUID.randomUUID().toString(),
+            edManufacturer.text.toString(),
+            edModel.text.toString(),
+            edPrice.text.toString().toInt(),
+            0
+        )
+        if (product != null) {
+            GlobalScope.launch {
+                val response = resService.updateProduct(product.id, newProduct)
+                showResponseToUi(
+                    response,
+                    "Successfully updated  product",
+                    "Failed to update product"
+                )
+            }
+        } else {
+            GlobalScope.launch {
+                val response = resService.postProduct(newProduct)
+                showResponseToUi(
+                    response,
+                    "Successfully created product",
+                    "Failed to create product"
+                )
+            }
         }
-        btnApplyDelta.setOnClickListener {
-            val delta = edDelta.text.toString().toIntOrNull()
-            if (product != null && delta != null) {
-                GlobalScope.launch {
-                    service.changeQuantity(product.id, delta)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@EditActivity,
-                            "Successfully changed quantity",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    finish()
-                }
-            } else
-                Toast.makeText(this, "Can not convert delta text to int", Toast.LENGTH_SHORT).show()
-        }
+    }
 
-        btnPut.setOnClickListener {
-            val newProduct = Product(
-                UUID.randomUUID().toString(),
-                edManufacturer.text.toString(),
-                edModel.text.toString(),
-                edPrice.text.toString().toInt(),
-                0
-            )
-            if (product != null) {
-                GlobalScope.launch {
-                    service.updateProduct(product.id, newProduct)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@EditActivity,
-                            "Successfully updated products",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    finish()
-                }
-            } else {
-                GlobalScope.launch {
-                    service.postProduct(newProduct)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@EditActivity,
-                            "Successfully created products",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    finish()
-                }
+    private fun onDeleteClick(product: Product?) {
+        if (product != null) {
+            GlobalScope.launch {
+                val response = resService.deleteProducts(product.id)
+                showResponseToUi(
+                    response,
+                    "Successfully deleted product",
+                    "Failed to delete product"
+                )
+            }
+        } else
+            Toast.makeText(this, "Can not delete null product", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onApplyChangeClick(product: Product?) {
+        val delta = edDelta.text.toString().toIntOrNull()
+        if (product != null && delta != null) {
+            GlobalScope.launch {
+                val response = resService.changeQuantity(product.id, delta)
+                showResponseToUi(
+                    response,
+                    "Successfully changed quantity",
+                    "Failed to change quantity"
+                )
+            }
+        } else
+            Toast.makeText(this, "Can not convert delta text to int", Toast.LENGTH_SHORT).show()
+    }
+
+    private suspend fun showResponseToUi(
+        response: Response<Void>,
+        successMessage: String,
+        failMessage: String
+    ) {
+        if (response.isSuccessful) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@EditActivity,
+                    successMessage,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            finish()
+        } else {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@EditActivity,
+                    failMessage + ": " + response.code(),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

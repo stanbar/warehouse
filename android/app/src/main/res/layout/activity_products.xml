@@ -51,15 +51,25 @@
         android:layout_margin="8dp"
         android:layout_marginTop="8dp"
         android:text="Products"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profileContainer" />
 
     <Button
-        android:id="@+id/btnFetchProducts"
+        android:id="@+id/btnPullProducts"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         style="@style/Widget.AppCompat.Button.Borderless"
-        android:text="Fetch"
+        android:text="Pull"
         app:layout_constraintStart_toEndOf="@id/productsTitle"
+        app:layout_constraintTop_toBottomOf="@+id/profileContainer" />
+
+    <Button
+        android:id="@+id/btnAddProduct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:text="Create"
+        app:layout_constraintStart_toEndOf="@id/btnPullProducts"
         app:layout_constraintTop_toBottomOf="@+id/profileContainer" />
 
     <androidx.recyclerview.widget.RecyclerView

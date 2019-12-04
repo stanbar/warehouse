@@ -8,15 +8,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_products.*
 import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 import kotlin.coroutines.CoroutineContext
 
 
 class HomeActivity : AppCompatActivity(), CoroutineScope {
-    val TAG = "HomeActivity"
+    private val TAG = "HomeActivity"
     private val parent = SupervisorJob()
 
     override val coroutineContext: CoroutineContext
@@ -28,26 +24,8 @@ class HomeActivity : AppCompatActivity(), CoroutineScope {
         )
     }
 
-    private fun getAccessToken() = prefs.getString("accessToken", null)
-    private fun clearAccessToken() = prefs.edit().putString("accessToken", null).apply()
-
-    private val client by lazy {
-        OkHttpClient.Builder().addInterceptor { chain ->
-            val newRequest: Request = chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer ${getAccessToken()}")
-                .build()
-            chain.proceed(newRequest)
-        }.build()
-    }
-
-    private val service: ResourceService by lazy {
-        Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080")
-            .client(client)
-            .addConverterFactory(MoshiConverterFactory.create())
-            .build()
-            .create(ResourceService::class.java)
-    }
+    private val authService by lazy { LocalStorage(prefs) }
+    private val resService by lazy { ResourceService(authService) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,21 +39,13 @@ class HomeActivity : AppCompatActivity(), CoroutineScope {
         fetchCurrentUser()
         fetchProducts()
 
-        btnLogout.setOnClickListener {
-            clearAccessToken()
-            finish()
-        }
-
-        btnFetchProducts.setOnClickListener {
-            fetchProducts()
-        }
+        setListeners()
     }
-
 
     private fun fetchCurrentUser() = launch {
         val currentUser = try {
             withContext(Dispatchers.IO) {
-                service.getCurrentUser()
+                resService.getCurrentUser()
             }
         } catch (e: Exception) {
             Log.e(TAG, e.message)
@@ -86,13 +56,27 @@ class HomeActivity : AppCompatActivity(), CoroutineScope {
     }
 
     private fun fetchProducts() = launch {
-        val products = withContext(Dispatchers.IO) { service.getProducts() }
+        val products = withContext(Dispatchers.IO) { resService.getProducts() }
         println(products)
         (rvProducts.adapter as ProductsAdapter).replaceProducts(products)
     }
 
+    private fun setListeners() {
+        btnLogout.setOnClickListener {
+            authService.clearAccessToken()
+            finish()
+        }
+        btnPullProducts.setOnClickListener {
+            fetchProducts()
+        }
+        btnAddProduct.setOnClickListener {
+            val intent = Intent(this, EditActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
     override fun onDestroy() {
-        parent.cancel()
+        parent.cancel() // Cancel out, parent coroutine scope, so they don't won't execute any following callbacks
         super.onDestroy()
     }
 
