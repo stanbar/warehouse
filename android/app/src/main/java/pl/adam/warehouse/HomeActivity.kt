@@ -1,5 +1,6 @@
 package pl.adam.warehouse
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
@@ -51,12 +52,22 @@ class HomeActivity : AppCompatActivity(), CoroutineScope {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_products)
-        rvProducts.adapter = ProductsAdapter()
+        rvProducts.adapter =
+            ProductsAdapter { product ->
+                val intent = Intent(this, EditActivity::class.java)
+                intent.putExtra(EditActivity.PRODUCT, product)
+                startActivity(intent)
+            }
         fetchCurrentUser()
         fetchProducts()
+
         btnLogout.setOnClickListener {
             clearAccessToken()
             finish()
+        }
+
+        btnFetchProducts.setOnClickListener {
+            fetchProducts()
         }
     }
 

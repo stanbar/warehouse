@@ -4,6 +4,68 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_margin="8dp"
     tools:context=".EditActivity">
+
+    <EditText
+        android:id="@+id/edManufacturer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Manufacturer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/edModel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Model"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edManufacturer" />
+
+    <EditText
+        android:id="@+id/edPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Price"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edModel" />
+
+    <EditText
+        android:id="@+id/edDelta"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Quantity"
+        app:layout_constraintEnd_toStartOf="@+id/btnApplyDelta"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edPrice" />
+
+    <Button
+        android:id="@+id/btnApplyDelta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Apply"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edPrice" />
+
+    <Button
+        android:id="@+id/btnPut"
+        android:layout_width="204dp"
+        android:layout_height="wrap_content"
+        android:text="Update"
+        app:layout_constraintEnd_toStartOf="@+id/btnDelete"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edDelta" />
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="204dp"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edDelta" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

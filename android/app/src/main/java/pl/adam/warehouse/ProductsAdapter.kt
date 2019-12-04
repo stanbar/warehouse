@@ -7,10 +7,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import pl.adam.warehouse.models.Product
 
-class ProductsAdapter : RecyclerView.Adapter<ProductsAdapter.ProductVH>() {
+class ProductsAdapter(private val clickListener: (Product) -> Unit) :
+    RecyclerView.Adapter<ProductsAdapter.ProductVH>() {
     private val products = mutableListOf<Product>()
 
-    fun replaceProducts(products: List<Product>){
+    fun replaceProducts(products: List<Product>) {
         this.products.clear()
         this.products.addAll(products)
         notifyDataSetChanged()
@@ -19,7 +20,7 @@ class ProductsAdapter : RecyclerView.Adapter<ProductsAdapter.ProductVH>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductVH {
         val view =
             LayoutInflater.from(parent.context).inflate(R.layout.product_view_holder, null)
-        return ProductVH(view)
+        return ProductVH(view, clickListener)
     }
 
     override fun getItemCount() = products.size
@@ -27,7 +28,8 @@ class ProductsAdapter : RecyclerView.Adapter<ProductsAdapter.ProductVH>() {
         holder.bind(products[position])
     }
 
-    class ProductVH(view: View) : RecyclerView.ViewHolder(view) {
+    class ProductVH(view: View, val clickListener: (Product) -> Unit) :
+        RecyclerView.ViewHolder(view) {
         private val tvModel: TextView = view.findViewById(R.id.tvModel)
         private val tvManufacturer: TextView = view.findViewById(R.id.tvManufacturer)
         private val tvPrice: TextView = view.findViewById(R.id.tvPrice)
@@ -35,6 +37,9 @@ class ProductsAdapter : RecyclerView.Adapter<ProductsAdapter.ProductVH>() {
 
         fun bind(product: Product) {
             println("bind $product")
+            itemView.setOnClickListener {
+                clickListener(product)
+            }
             tvModel.text = product.model
             tvManufacturer.text = product.manufacturer
             tvPrice.text = product.price.toString()

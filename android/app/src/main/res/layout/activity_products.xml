@@ -23,33 +23,43 @@
             app:layout_constraintTop_toBottomOf="@+id/profileContainer" />
 
         <TextView
-            android:layout_margin="8dp"
             android:id="@+id/tvEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             tools:text="adam@warehouse.com" />
 
         <TextView
-            android:layout_margin="8dp"
             android:id="@+id/tvRole"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             tools:text="manager" />
+
         <Button
-            android:text="Logout"
             android:id="@+id/btnLogout"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:text="Logout" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/productsTitle"
         style="@style/TextAppearance.AppCompat.Title"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_marginTop="8dp"
         android:text="Products"
+        app:layout_constraintTop_toBottomOf="@+id/profileContainer" />
+
+    <Button
+        android:id="@+id/btnFetchProducts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:text="Fetch"
+        app:layout_constraintStart_toEndOf="@id/productsTitle"
         app:layout_constraintTop_toBottomOf="@+id/profileContainer" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -58,9 +68,9 @@
         android:layout_height="0dp"
         android:layout_margin="8dp"
         android:layout_marginTop="8dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/productsTitle"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/product_view_holder" />
 
