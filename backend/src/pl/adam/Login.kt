@@ -3,6 +3,8 @@ package pl.adam
 import io.ktor.application.call
 import io.ktor.html.respondHtml
 import io.ktor.http.Parameters
+import io.ktor.http.formUrlEncode
+import io.ktor.http.parseUrlEncodedParameters
 import io.ktor.request.receiveParameters
 import io.ktor.response.respondRedirect
 import io.ktor.routing.Routing
@@ -15,9 +17,12 @@ import pl.adam.models.LoginResponse
 
 fun Routing.getLogin() {
     get("/login") {
-        val googleIdToken = call.request.queryParameters["google_id_token"]
         val challenge = call.request.queryParameters["login_challenge"]!!
         val response: LoginResponse = Hydra.getLoginRequest(challenge)
+        val queryParams = response.requestUrl.parseUrlEncodedParameters()
+        println("requestUrl parameters: " + queryParams.formUrlEncode())
+        val googleIdToken = queryParams["google_id_token"]
+        println("googleIdToken: $googleIdToken")
         when {
             response.skip -> {
                 val res =
@@ -29,6 +34,7 @@ fun Routing.getLogin() {
             }
             googleIdToken != null -> {
                 val googleRes = Hydra.authenticateWithGoogle(googleIdToken, challenge)
+                println("Redirecting to consent view")
                 call.respondRedirect(url = googleRes.redirectTo!!)
             }
             else -> {

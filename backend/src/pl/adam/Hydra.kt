@@ -97,27 +97,26 @@ object Hydra {
         challenge: String
     ): LoginResponse {
         val tokenInfoUrl = URL("https://oauth2.googleapis.com/tokeninfo?id_token=$googleIdToken")
+        println("Requesting on tokenInfoUrl $tokenInfoUrl")
         val token: Map<String, String> = client.get(tokenInfoUrl)
-        validateGoogleToken(token);
-        val body = JSONObject(
-            mapOf(
-                "subject" to token["email"],
-                "remember" to 3600 * 24 * 90
-            )
+        validateGoogleToken(token)
+        return acceptLoginRequest(
+            challenge,
+            JSONObject(mapOf("subject" to token["email"], "remember_for" to 60 * 60 * 24 * 90))
         )
-        return acceptLoginRequest(challenge, body)
     }
 
     fun validateGoogleToken(token: Map<String, String>) {
         println(token)
         val iss = token["iss"] ?: error("could not find iss field in id_token")
-        if (iss !== "https://accounts.google.com" && iss !== "accounts.google.com") {
+        if (iss != "https://accounts.google.com" && iss != "accounts.google.com") {
             throw error("Invalid iss $iss")
         }
 
         val exp = token["exp"] ?: throw error("could not find exp field in id_token")
 
-        if (exp.toInt() < System.currentTimeMillis()) {
+        println("exp: $exp SystemCurrent: ${System.currentTimeMillis()}")
+        if (exp.toLong() < System.currentTimeMillis() / 1000) {
             error("token expired")
         }
     }

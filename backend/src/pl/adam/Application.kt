@@ -2,6 +2,7 @@ package pl.adam
 
 import com.google.gson.JsonObject
 import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.AutoHeadResponse
@@ -16,6 +17,8 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.*
+import io.ktor.util.pipeline.ContextDsl
+import io.ktor.util.pipeline.PipelineContext
 import org.slf4j.event.Level
 import pl.adam.models.Product
 import pl.adam.models.User
@@ -45,72 +48,78 @@ fun Application.module(testing: Boolean = false) {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
         get("/currentUser") {
-            val authorizationToken = call.request.header("Authorization")
-            if (authorizationToken == null) {
-                call.respond(HttpStatusCode.NonAuthoritativeInformation)
-            } else {
-                val token = authorizationToken.substringAfter("Bearer ")
-                val subject = Hydra.introspectOAuthToken(token)
-                call.respond(User(subject.subject, subject.extra["role"] ?: "n/a"))
+            authorization { user ->
+                this.call.respond(user)
             }
         }
         get("/products") {
-            call.respond(products.values)
+            authorization {
+                call.respond(products.values)
+            }
         }
         get("/products/{id}") {
-            val item = products[call.parameters["id"]]
-            if (item == null)
-                call.respond(HttpStatusCode.NotFound)
-            else
-                call.respond(item)
+            authorization {
+                val item = products[call.parameters["id"]]
+                if (item == null)
+                    call.respond(HttpStatusCode.NotFound)
+                else
+                    call.respond(item)
+            }
         }
         post("/products") {
-            val newProduct = call.receive<Product>()
-            try {
-                products[newProduct.id] = newProduct
-                call.respond(HttpStatusCode.Created)
-            } catch (e: Exception) {
-                println(e.message)
-                call.respond(HttpStatusCode.BadRequest)
-                return@post
+            authorization {
+                val newProduct = call.receive<Product>()
+                try {
+                    products[newProduct.id] = newProduct
+                    call.respond(HttpStatusCode.Created)
+                } catch (e: Exception) {
+                    println(e.message)
+                    call.respond(HttpStatusCode.BadRequest)
+                }
             }
         }
         put("/products/{id}") {
-            val productId = call.parameters["id"]
-            val updatedProduct = call.receive<JsonObject>()
-            if (productId == null) {
-                call.respond(HttpStatusCode.BadRequest, "Please provide product id in request path")
-            } else {
-                val currentProduct = products[productId]
-                if (currentProduct == null) {
-                    call.respond(HttpStatusCode.NotFound)
+            authorization {
+                val productId = call.parameters["id"]
+                val updatedProduct = call.receive<JsonObject>()
+                if (productId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Please provide product id in request path")
                 } else {
-                    val newProduct = currentProduct.copy(
-                        manufacturer = updatedProduct["manufacturer"]?.asString ?: currentProduct.manufacturer,
-                        model = updatedProduct["model"]?.asString ?: currentProduct.model,
-                        price = updatedProduct["price"]?.asInt ?: currentProduct.price
-                    )
-                    products[productId] = newProduct
-                    call.respond(HttpStatusCode.OK)
+                    val currentProduct = products[productId]
+                    if (currentProduct == null) {
+                        call.respond(HttpStatusCode.NotFound)
+                    } else {
+                        val newProduct = currentProduct.copy(
+                            manufacturer = updatedProduct["manufacturer"]?.asString ?: currentProduct.manufacturer,
+                            model = updatedProduct["model"]?.asString ?: currentProduct.model,
+                            price = updatedProduct["price"]?.asInt ?: currentProduct.price
+                        )
+                        products[productId] = newProduct
+                        call.respond(HttpStatusCode.OK)
+                    }
                 }
             }
         }
         delete("/products/{id}") {
-            val productId = call.parameters["id"]
-            products.remove(productId)
-            call.respond(HttpStatusCode.OK)
+            authorization("manager") {
+                val productId = call.parameters["id"]
+                products.remove(productId)
+                call.respond(HttpStatusCode.OK)
+            }
         }
         post("/changeQuantity/{id}") {
-            try {
-                val productId = call.parameters["id"]!!
-                val deltaString = call.request.queryParameters["delta"]!!
-                val delta = deltaString.toInt()
-                val product = products[productId]!!
+            authorization {
+                try {
+                    val productId = call.parameters["id"]!!
+                    val deltaString = call.request.queryParameters["delta"]!!
+                    val delta = deltaString.toInt()
+                    val product = products[productId]!!
 
-                products[productId] = product.copy(quantity = product.quantity + delta)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest)
+                    products[productId] = product.copy(quantity = product.quantity + delta)
+                    call.respond(HttpStatusCode.OK)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
             }
         }
 
@@ -128,6 +137,26 @@ fun Application.module(testing: Boolean = false) {
             call.respondHtml {
                 consentPage("1234", "adam@gliszczynski.pl")
             }
+        }
+    }
+}
+
+@ContextDsl
+private suspend fun PipelineContext<Unit, ApplicationCall>.authorization(
+    requiredRole: String? = null,
+    next: suspend PipelineContext<Unit, ApplicationCall>.(User) -> Unit
+) {
+    val authorizationToken = call.request.header("Authorization")
+    if (authorizationToken == null) {
+        call.respond(HttpStatusCode.NonAuthoritativeInformation)
+    } else {
+        val token = authorizationToken.substringAfter("Bearer ")
+        val subject = Hydra.introspectOAuthToken(token)
+        val user = User(subject.subject, subject.extra["role"] ?: "n/a")
+        if(requiredRole != null && requiredRole == "manager" && user.role != "manager"){
+            call.respond(HttpStatusCode.Unauthorized)
+        }else {
+            next(user)
         }
     }
 }
