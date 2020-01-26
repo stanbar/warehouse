@@ -45,7 +45,10 @@ class MainActivity : AppCompatActivity() {
             Uri.parse("https://accounts.google.com")
         ) { serviceConfig, ex ->
             when {
-                ex != null -> ex.printStackTrace()
+                ex != null -> {
+                    ex.printStackTrace()
+                    Toast.makeText(this, ex.message, Toast.LENGTH_LONG).show()
+                }
                 serviceConfig != null -> {
                     val authRequest =
                         AuthorizationRequest.Builder(
@@ -111,7 +114,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_EMAIL_AUTH) {
             val exception = AuthorizationException.fromIntent(data)
-            if (exception  != null) {
+            if (exception != null) {
                 Toast.makeText(this, exception.toJsonString(), Toast.LENGTH_SHORT).show()
                 return
             }
@@ -134,7 +137,7 @@ class MainActivity : AppCompatActivity() {
             }
         } else if (requestCode == RC_GOOGLE_AUTH) {
             val exception = AuthorizationException.fromIntent(data)
-            if (exception  != null) {
+            if (exception != null) {
                 Toast.makeText(this, exception.toJsonString(), Toast.LENGTH_SHORT).show()
                 return
             }

@@ -132,7 +132,7 @@ fun Routing.postConsent() {
             val response = Hydra.acceptConsentRequest(
                 challenge, JSONObject(
                     mapOf(
-                        "grant_scope" to grantScope!!.split(", "),
+                        "grant_scope" to grantScope?.split(", "),
                         "grant_access_token_audience" to requestedAccessTokenAudience,
                         "session" to mapOf(
                             "access_token" to mapOf(
